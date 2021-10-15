@@ -28,11 +28,13 @@ public class Main {
     }
 
     static String from_dec_to_bin(long n) { // переводит целое число из десятичной в двоичную
+        if (n == 0) return "0";
         StringBuilder ans = new StringBuilder();
         while (n != 0) {
             ans.insert(0, n % 2);
             n = n / 2;
         }
+
         return ans.toString();
     }
 
@@ -45,7 +47,6 @@ public class Main {
                 break;
             }
         }
-        if (ans.toString().equals(".")) ans.append("0");
         return ans.toString();
     }
 
@@ -155,18 +156,23 @@ public class Main {
                 return; // тоже ломаем прогу
             }
         }
+        System.out.println(bin_whole);
         // все комменты к коду для float будут в коде для double, т.к. они идентичны
         if (Double.toString(fractional).equals(Float.toString((float) fractional))) {
             String ans1 = ans;
             String bin_float = float_from_dec_to_bin(fractional, 23 - bin_whole.length() + 1);
             String num = bin_whole + bin_float;
-
+            System.out.println(num);
             String[] ss = num.split("\\.");
-            int por = num.length() - 2 - ss[1].length() + 127;
+            int por;
+            if (ss[0].indexOf('1') != -1) por = num.length() - 2 - ss[1].length() + 127;
+            else por = 127 - num.indexOf('1') + 1;
             String porr = from_dec_to_bin(por);
-            ans1 += to_len(8 - porr.length(), '0') + porr + " ";
 
-            s = ss[0].replaceFirst("1", "") + ss[1];
+            ans1 += to_len(8 - porr.length(), '0') + porr + " ";
+            if (!ss[0].equals("0")) s = ss[0].replaceFirst("1", "");
+            else s = "";
+            s += ss[1];
             ans1 += s + to_len(23 - s.length(), '0');
 
             System.out.println("float: " + ans1);
@@ -175,11 +181,15 @@ public class Main {
         String num = bin_whole + bin_float; // бинарная запись числа
 
         String[] ss = num.split("\\.");
-        int por = num.length() - 2 - ss[1].length() + 1023; // получаем смещенный порядок
+        int por;
+        if (ss[0].indexOf('1') != -1) por = num.length() - 2 - ss[1].length() + 1023;
+        else por = 1023 - num.indexOf('1') + 1; // получаем смещенный порядок
         String porr = from_dec_to_bin(por);
         ans += to_len(11 - porr.length(), '0') + porr + " "; // добавляет к ответу порядок
 
-        s = ss[0].replaceFirst("1", "") + ss[1];
+        if (!ss[0].equals("0")) s = ss[0].replaceFirst("1", "");
+        else s = "";
+        s += ss[1];
         ans += s + to_len(52 - s.length(), '0'); // добавляет к ответу мантиссу
 
         System.out.println("double: " + ans);
