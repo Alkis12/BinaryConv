@@ -1,5 +1,3 @@
-package com.company;
-
 import java.util.Scanner;
 import java.lang.Math;
 
@@ -23,13 +21,13 @@ public class Main {
     static long from_bin_to_dec(String x) { // переводит из двоичной в десятичную
         long n = 0;
         for (int i = x.length() - 1; i > 0; i--) {
-            n += Math.pow(2 * Integer.parseInt("" + x.charAt(x.length() - i - 1)), i);
+            n += Math.pow(2 * Long.parseLong("" + x.charAt(x.length() - i - 1)), i);
         }
-        if (x.charAt(x.length() - 1) == '1') n++; // последнее я вынес отдельно так как 0^0 тоже для него равен 1
+        if (x.charAt(x.length() - 1) == '1') n++; // последний символ я вынес отдельно так как 0^0 для java тоже равен 1
         return n;
     }
 
-    static String from_dec_to_bin(long n) { // переводит из десятичной в двоичную
+    static String from_dec_to_bin(long n) { // переводит целое число из десятичной в двоичную
         StringBuilder ans = new StringBuilder();
         while (n != 0) {
             ans.insert(0, n % 2);
@@ -38,47 +36,55 @@ public class Main {
         return ans.toString();
     }
 
-    static String negative(String x) { // превращает бинарную запись числа в бинарную запись его отрицательного варианта
-        String x1 = ""; // создаем ивертированную строку (меняем 0 на 1 и наоборот)
-        for (int i = 0; i < x.length(); i++) {
-            if (x.charAt(i) == '1') x1 += '0';
-            else x1 += '1';
-        }
-        long n = from_bin_to_dec(x1); // переводим из двоичной в десятичную
-        n++; // увеличиваем число на 1
-        x = from_dec_to_bin(n); // переводим из десятичной в двоичную
-        x = String.format("%0" + x1.length() + "d", Long.parseLong(x));
-        // дополняем ответ до изначальной длины (вдруг мы при переводе строк в числа потеряли ведущие нолики)
-        return x;
-    }
-
-    static String float_from_dec_to_bin(double b, int maxl) {
-        String bin = ".";
-        for (int i = 0; i < maxl; i++) {
+    static String float_from_dec_to_bin(double b, int count) { // переводит дробное число из десятичной в двоичную
+        StringBuilder ans = new StringBuilder(".");
+        for (int i = 0; i < count; i++) {
             b = b * 2 - (int) b * 2;
-            bin = bin + (int) b;
+            ans.append((int) b);
             if (b == 1.0) {
                 break;
             }
         }
-        return bin;
+        if (ans.toString().equals(".")) ans.append("0");
+        return ans.toString();
     }
+
+    static String negative(String x) { // превращает бинарную запись числа в бинарную запись его отрицательного варианта
+        StringBuilder x1 = new StringBuilder(); // создаем ивертированную строку (меняем 0 на 1 и наоборот)
+        for (int i = 0; i < x.length(); i++) {
+            if (x.charAt(i) == '1') x1.append('0');
+            else x1.append('1');
+        }
+        long n = from_bin_to_dec(x1.toString()); // переводим из двоичной в десятичную
+        n++; // увеличиваем число на 1
+        x = from_dec_to_bin(n); // переводим из десятичной в двоичную
+        try {
+            x = String.format("%0" + x1.length() + "d", Long.parseLong(x));
+        } catch (NumberFormatException e) {
+            System.out.println("Что-то пошло не так"); // такое происходит при числе, равному минимальному Integer или Long
+            System.exit(0);
+        }
+        // дополняем ответ до изначальной длины (вдруг мы при переводе строк в числа потеряли ведущие нолики)
+        return x;
+    }
+
 
     public static void main(String[] args) {
         Scanner scanner = new Scanner(System.in);
-        String m1 = scanner.next().replaceAll(",", "\\.");
+        String s = scanner.next().replaceAll(",", "\\.");
         double nn;
-        try {
-            nn = Double.parseDouble(m1);
+        try { // тест на корректность ввода
+            nn = Double.parseDouble(s);
         } catch (NumberFormatException e) {
             System.out.println("Вы ввели что-то неправильно");
-            return; // ну вводят люди неправильно ну бывает
+            return; // конец
         }
         if (Double.isInfinite(nn)) {
-            System.out.println("Ваше число слишком большое и не влазит даже в double");
+            System.out.println("Ваше число слишком большое по модулю и не влазит даже в double");
             return; // ломаем прогу
         }
-        String[] m = m1.split("\\.");
+
+        String[] m = s.split("\\.");
         // проверка на корректность входных данных
         if (m.length > 2) {
             System.out.println("Возможно, Вы ввели что-то некорректно. Во введенном числе должна быть максимум одна точка.");
@@ -95,18 +101,17 @@ public class Main {
             }
             boolean f = false;
             if (n < 0) {
-                f = true;
                 n = -n; // если наше число отрицательное, то пока что будем делать вид что оно положительное, а потом инвертируем
+                f = true; // флажок нам покажет, что число было отрицательным
             }
             String ans = from_dec_to_bin(n);
-            char dop_symbol;
+            char dop_symbol; // символ, которым будем дополнять ответ до нужной длины
             if (f) {
                 ans = negative(ans); // если число было отрицательным, переделываем его бинарную запись
-                dop_symbol = '1'; // символ, которым будем дополнять ответ до нужной длины
+                dop_symbol = '1';
             } else {
                 dop_symbol = '0';
             }
-            String s;
             int x = ans.length();
             if (8 >= x) {
                 s = to_len(8 - x, dop_symbol) + ans; // дополняем до нужной длины
@@ -124,12 +129,13 @@ public class Main {
                 s = to_len(64 - x, dop_symbol) + ans;
                 System.out.println("long: " + s.replaceAll("(.{8})", "$1 "));
             }
-
         }
         // мы вывели все целые формы, если они были и теперь осталось сделать лишь дробные
         String ans = "";
-        if (m[0].charAt(0) == '-') ans += "1 "; //  определяем первый бит ответа
-        else ans += "0 ";
+        if (m[0].charAt(0) == '-')
+            ans += "1 "; //  определяем первый бит ответа
+        else
+            ans += "0 ";
         long whole;
         try { // ещё одна проверка на корректность и одновременное преобразование целой части в число
             whole = Long.parseLong(m[0]);
@@ -152,26 +158,30 @@ public class Main {
         // все комменты к коду для float будут в коде для double, т.к. они идентичны
         if (Double.toString(fractional).equals(Float.toString((float) fractional))) {
             String ans1 = ans;
-            String s1 = "", s2 = "";
-            s2 = float_from_dec_to_bin(fractional, 23 - bin_whole.length() + 1);
-            s1 += bin_whole + s2;
-            String[] ss = s1.split("\\.");
-            int por = s1.length() - 2 - ss[1].length() + 127;
+            String bin_float = float_from_dec_to_bin(fractional, 23 - bin_whole.length() + 1);
+            String num = bin_whole + bin_float;
+
+            String[] ss = num.split("\\.");
+            int por = num.length() - 2 - ss[1].length() + 127;
             String porr = from_dec_to_bin(por);
             ans1 += to_len(8 - porr.length(), '0') + porr + " ";
-            s2 = ss[0].replaceFirst("1", "") + ss[1];
-            ans1 += s2 + to_len(23 - s2.length(), '0');
+
+            s = ss[0].replaceFirst("1", "") + ss[1];
+            ans1 += s + to_len(23 - s.length(), '0');
+
             System.out.println("float: " + ans1);
         }
-        String s1 = "", s2 = "";
-        s2 = float_from_dec_to_bin(fractional, 52 - bin_whole.length()); // всякая куча второстепенных переменных
-        s1 += bin_whole + s2; // бинарная запись числа
-        String[] ss = s1.split("\\.");
-        int por = s1.length() - 2 - ss[1].length() + 1023; // получаем смещенный порядок
+        String bin_float = float_from_dec_to_bin(fractional, 52 - bin_whole.length()); // бинарная запись дробной части
+        String num = bin_whole + bin_float; // бинарная запись числа
+
+        String[] ss = num.split("\\.");
+        int por = num.length() - 2 - ss[1].length() + 1023; // получаем смещенный порядок
         String porr = from_dec_to_bin(por);
-        ans += to_len(11 - porr.length(), '0') + porr + " "; // формируем ответ из всех частей
-        s2 = ss[0].replaceFirst("1", "") + ss[1];
-        ans += s2 + to_len(52 - s2.length(), '0');
+        ans += to_len(11 - porr.length(), '0') + porr + " "; // добавляет к ответу порядок
+
+        s = ss[0].replaceFirst("1", "") + ss[1];
+        ans += s + to_len(52 - s.length(), '0'); // добавляет к ответу мантиссу
+
         System.out.println("double: " + ans);
     }
 }
